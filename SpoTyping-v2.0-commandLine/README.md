@@ -76,7 +76,7 @@ python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
 4. If the reads are sorted against a reference genome (extracted form sorted bam files, for example), please specify **'--sorted'**.
 <br><br>
 
-**SpoTyping seems slow?** (more than 5 mins, for example)
+**SpoTyping seems slow?** (Not finished in 5 mins, for example)
 * Low quality of sequence reads?** (reads with many 'N's or long homopolymers): try to use **'--filter'**.
 ```shell
 # Example commad:
