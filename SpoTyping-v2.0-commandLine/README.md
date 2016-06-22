@@ -22,7 +22,9 @@ In the xls excel file:		spoligotype query result downloaded from SITVIT WEB.
 python SpoTyping.py [options] FASTQ_1 FASTQ_2(optional)
 
 **An Example call:**  
+```
 python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
+```
 
 ##### Options:
   **--version**  
@@ -108,4 +110,6 @@ A pdf file with the information in the xls file summarized with pie charts.
 Rscript SpoTyping_plot.r query_from_SITVIT.xls output.pdf
 
 **An example call:**  
+```
 Rscript SpoTypint_plot.r SITVIT_ONLINE.777777477760771.xls SITVIT_ONLINE.777777477760771.pdf
+```
