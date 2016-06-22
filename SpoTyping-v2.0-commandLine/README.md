@@ -77,7 +77,7 @@ python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
 <br><br>
 
 **SpoTyping seems slow?** (Not finished in 5 mins, for example)
-* Low quality of sequence reads?** (reads with many 'N's or long homopolymers): try to use **'--filter'**.
+* **Low quality of sequence reads?** (reads with many 'N's or long homopolymers): try to use **'--filter'**.
 ```shell
 # Example commad:
 python SpoTyping.py --filter read_1.fastq.gz read_2.fastq.gz
