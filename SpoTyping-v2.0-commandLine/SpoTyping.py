@@ -369,15 +369,14 @@ if __name__ == "__main__":
 
     if narg == 2:
         log.write("## %s %s\n" % (input1,input2))
+        out_file.write("%s&%s\t" % (input1,input2))
     else:
+        out_file.write("%s\t" % input1)
         log.write("## %s\n" % input1)
 
     log.write("## min=%d rmin=%d\n" %(min_strict, min_relax))
     log.write("## Spacer\tError-free_number\t1-error-tolerant_number\tCode\n")
-    if narg == 2:
-        out_file.write("%s&%s\t" % (input1,input2))
-    else:
-        out_file.write("%s\t" % input1)
+
 
     SpoType = t.parse_blast("%s.blast.out" % tmpfile,log,out_file)
 

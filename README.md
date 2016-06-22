@@ -1,5 +1,7 @@
 # SpoTyping
 
+v2.1: Updated on 2016-06-22. Important changes have been made to SpoTyping. Please refer to Update-history.md in respective directory.
+
 v2.0: This is the initial published version of SpoTyping.
 
 ### Citation

@@ -1,4 +1,4 @@
-## Copyright (C) 2015 Xia Eryu (xiaeryu@nus.edu.sg).
+## Copyright (C) 2016 Xia Eryu (xiaeryu@u.nus.edu).
 ##
 ## This program is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU General Public License
@@ -44,7 +44,9 @@ class Main(Tkinter.Tk):
         self.blast = ""		# Dirctory to blast executables
         self.seq = False	# If True, the input is a fasta file containing complete sequence or assembled contigs
         self.swift = True	# Swift mode
-        self.min = 5		# Error-free hit threshold
+        self.filt = False	# Filter before using
+        self.sortS = False	# For sorted reads
+        self.min_strict = 5		# Error-free hit threshold
         self.min_relax = 6	# 1-error-tolerant hit threshold
         self.output = ""	# Output file
         self.outdir = ""	# Output directory
@@ -172,11 +174,41 @@ class Main(Tkinter.Tk):
         self.entry7.grid(column=1,row=11,sticky="WE")
         self.entry7.insert(0,6)
 
+		
+	    # Filter
+        L11 = Tkinter.Label(self, text="Filter", anchor="w")
+        L11.grid(column=0,row=12,sticky='W')
+
+        self.var6 = Tkinter.BooleanVar()
+        RG3 = Tkinter.Frame(self, width=80)
+        RG31 = Tkinter.Radiobutton(RG3, text="Yes", width=40, variable=self.var6, value=True, command=self.selection) 
+        RG31.grid(column=0,row=0,sticky="W")
+
+        RG32 = Tkinter.Radiobutton(RG3, text="No", width=40, variable=self.var6, value=False, command=self.selection)
+        RG32.grid(column=1,row=0,sticky="W")
+        RG32.select()
+        RG3.grid(column=1,row=12,sticky='WE')
+
+        # Sorted
+        L12 = Tkinter.Label(self, text="Sorted", anchor="w")
+        L12.grid(column=0,row=13,sticky='W')
+
+        self.var7 = Tkinter.BooleanVar()
+        RG4 = Tkinter.Frame(self, width=80)
+        RG41 = Tkinter.Radiobutton(RG4, text="Yes", width=40, variable=self.var7, value=True, command=self.selection) 
+        RG41.grid(column=0,row=0,sticky="W")
+
+        RG42 = Tkinter.Radiobutton(RG4, text="No", width=40, variable=self.var7, value=False, command=self.selection)
+        RG42.grid(column=1,row=0,sticky="W")
+        RG42.select()
+        RG4.grid(column=1,row=13,sticky='WE')	
+		
+		
         # Add blank line
         L8 = Tkinter.Label(self, text="", anchor="center")
-        L8.grid(column=0,row=12,columnspan=3,sticky='WE')
+        L8.grid(column=0,row=14,columnspan=3,sticky='WE')
         L9 = Tkinter.Label(self, text="", anchor="center")
-        L9.grid(column=0,row=13,columnspan=3,sticky='WE')
+        L9.grid(column=0,row=15,columnspan=3,sticky='WE')
 
         # Submit, Reset, or Quit: Button settings
         BG1 = Tkinter.Frame(self)
@@ -187,18 +219,18 @@ class Main(Tkinter.Tk):
         B1.grid(column=0,row=0,sticky="W")
         B2.grid(column=1,row=0,sticky="W")
         B3.grid(column=2,row=0,sticky="W")
-        BG1.grid(column=1,row=14,sticky='WE')
+        BG1.grid(column=1,row=16,sticky='WE')
 
         # Running process
         L10 = Tkinter.Label(self, text="", anchor="center")
-        L10.grid(column=0,row=15,columnspan=3,sticky='WE')
+        L10.grid(column=0,row=17,columnspan=3,sticky='WE')
 
         TG1 = Tkinter.Frame(self, width=120)
         self.scrollbar = Tkinter.Scrollbar(TG1)
         self.scrollbar.grid(column=3,row=0,sticky='WE')
         self.text = Tkinter.Text(TG1, width=118,height=45, yscrollcommand = self.scrollbar.set)
         self.text.grid(column=0,row=0,columnspan=3,sticky='E')
-        TG1.grid(column=0,row=16,columnspan=4,sticky='WE')
+        TG1.grid(column=0,row=18,columnspan=4,sticky='WE')
 
 
 
@@ -220,11 +252,14 @@ class Main(Tkinter.Tk):
         self.blast = self.var3.get()
         self.output = self.var4.get()
         self.swift = self.var5.get()
-        self.min = self.entry6.get()
+        self.filt = self.var6.get()
+        self.sortS = self.var7.get()
+        self.min_strict = self.entry6.get()
         self.min_relax = self.entry7.get()
 
+
         if self.seq:
-            self.min = self.min_relax = 1
+            self.min_strict = self.min_relax = 1
 
         initial = self.preCheck()
         if not initial:
@@ -257,12 +292,16 @@ class Main(Tkinter.Tk):
         logname = self.output + '.log'
         log = open(logname,'a')
         out_file = open(self.output,'a')
-        log.write("## %s\n" % self.input1)
-        log.write("Spacer\tError-free_number\t1-error-tolerant_number\tCode\n")
+
         if len(self.input2) > 2:
+            log.write("## %s\t%s\n" % (self.input1, self.input2))
             out_file.write("%s&%s\t" % (self.input1,self.input2))
         else:
+            log.write("## %s\n" % self.input1)
             out_file.write("%s\t" % self.input1)
+		
+        log.write("## min=%d rmin=%d\n" %(self.min_strict, self.min_relax))
+        log.write("## Spacer\tError-free_number\t1-error-tolerant_number\tCode\n")
 
         [binCode, SpoType] = self.parse_blast("%s.blast.out" % tmpfile,log,out_file)
 
@@ -346,14 +385,16 @@ class Main(Tkinter.Tk):
         
         ## Input parameters print
         self.text.insert(Tkinter.INSERT,"Swift mode: %s\n" % str(self.swift))
+        self.text.insert(Tkinter.INSERT,"Filter: %s\n" % str(self.filt))
+        self.text.insert(Tkinter.INSERT,"Sorted: %s\n" % str(self.sortS))
 
-        self.min = int(float(self.min))
+        self.min_strict = int(float(self.min_strict))
         self.min_relax = int(float(self.min_relax))
-        if self.min < 0:
-            self.min = 0
+        if self.min_strict < 0:
+            self.min_strict = 0
         if self.min_relax < 0:
             self.min_relax = 0
-        self.text.insert(Tkinter.INSERT,"Error-free hit threshold: %d\n" % self.min)
+        self.text.insert(Tkinter.INSERT,"Error-free hit threshold: %d\n" % self.min_strict)
         self.text.insert(Tkinter.INSERT,"1-error tolerant hit threshold: %d\n" % self.min_relax)
 
         return True
@@ -377,19 +418,62 @@ class Main(Tkinter.Tk):
         file_tmp = open(outFile, 'w')
         file_tmp.write(">Combine\n")
 
-        if swift:
-            out_first = self.concatenation_check(input1,file_tmp,setlength)
+        if self.swift:
+            if self.sortS:
+                step = self.scan_file(input1,setlength)
+                if step == 1:
+                    out_first = self.concatenation_check(input1,file_tmp,setlength)
+                else:
+                    out_first = self.concatenation_sort(input1,file_tmp,setlength,step,0)
+                    if len(input2) == 0 and out_first < setlength:
+                        self.concatenation_sort(input1,file_tmp,setlength-out_first,step,1)
+            else:
+                out_first = self.concatenation_check(input1,file_tmp,setlength)						
+						
             remaining = setlength - out_first
-            if len(input2)>0 and (remaining > 0):
-                self.concatenation_check(input2,file_tmp,remaining)
-        else:
-            self.concatenation(input1,file_tmp)
 
-        if len(input2)>0:
-            self.concatenation(input2,file_tmp)
+            if len(input2) > 0 and remaining > 0:
+                out_second = self.concatenation_check(input2,file_tmp,remaining)
+                if out_second < remaining:
+                    self.min_strict = max(1,int((out_first + out_second) * 0.1 / 5000000))
+                    self.min_relax = max(2,int((out_first + out_second) * 0.12 / 5000000))
+            elif len(input2) == 0 and remaining > 0:
+                    self.min_strict = max(1,int(out_first * 0.1 / 5000000))
+                    self.min_relax = max(2,int(out_first * 0.12 / 5000000))
+
+        else:
+            out_first = self.concatenation(input1,file_tmp)
+            if len(input2) > 0:
+                out_first += self.concatenation(input2,file_tmp)
+            self.min_strict = max(1,int(out_first * 0.1 / 5000000))
+            self.min_relax = max(2,int(out_first * 0.12 / 5000000))						
 
         file_tmp.write("\n")
         file_tmp.close()
+
+	
+    ## Filter out low quality reads	
+    def filterQuality(self, instr):
+        '''
+        This function trims/filters out low quality reads that satisfies one of the conditions below:
+        1. Leading and trailing 'N's would be removed.
+        2. Any read with more than 3 'N's in the middle would be removed.
+        3. Any read with more than 7 consecutive bases identical would be trimmed/filtered out given
+           the length of the flanking regions.
+        '''
+        instr = instr.upper()
+        instr = instr.strip('N')
+        if instr.count('N') >= 3:
+            return ""
+        tmp = re.split('A{7,}|T{7,}|C{7,}|G{7,}',instr)
+        if len(tmp) == 1:
+            return instr.replace('N', '')
+        output = []
+        for item in tmp:
+            if len(item) >= 25:
+                item = item.replace('N','')
+                output.append(item)
+        return "".join(output)
 
     ## Concatenate without length check
     def concatenation(self,in_file,out_handle):
@@ -398,12 +482,18 @@ class Main(Tkinter.Tk):
         else:
             in_handle = open(in_file)
         count = 0
+        outlength = 0
         for line in in_handle:
             line = line.strip('\n')
             if count % 4 == 1:
+                if self.filt:
+                    line = self.filterQuality(line)
                 out_handle.write(line)
+                outlength += len(line)
             count = (count+1) %4
         in_handle.close()
+        return outlength
+
 
     ## Concatenate with length check
     def concatenation_check(self,in_file,out_handle,cutoff):
@@ -415,14 +505,74 @@ class Main(Tkinter.Tk):
         outlength = 0
         for line in in_handle:
             line = line.strip('\n')
-            if outlength > self.setlength:
+            if outlength > cutoff:
                 break
             elif count % 4 == 1:
+                if self.filt:
+                    line = self.filterQuality(line)
                 out_handle.write(line)
                 outlength += len(line)
             count = (count+1) %4
         in_handle.close()
         return outlength
+
+
+    def scan_file(self,in_file,setlength):
+        '''
+        This function is designed to deal with situations where sequence reads are sorted
+        (extracrted from sorted bam files, for example)
+        '''
+        totalBase = 0
+
+        if in_file.endswith(".gz"):
+            in_handle = gzip.open(in_file, 'rb')
+        else:
+            in_handle = open(in_file)
+        count = 0
+
+        for line in in_handle:
+            line = line.strip('\n')
+            if count % 4 == 1:
+                totalBase += len(line)
+            count = (count+1) % 4
+        in_handle.close()
+
+        if totalBase < setlength:
+            return 1
+
+        return int(totalBase*1.0/setlength+0.5)
+
+
+    def concatenation_sort(self,in_file,out_handle,setlength,step,start):
+        '''
+        This function is designed to deal with situations where sequence reads are sorted
+        (extracrted from sorted bam files, for example)
+        '''
+        if in_file.endswith(".gz"):
+            in_handle = gzip.open(in_file, 'rb')
+        else:
+            in_handle = open(in_file)
+
+        count = 0
+        downsample = 0
+        outlength = 0
+
+        for line in in_handle:
+            line = line.strip('\n')
+            if outlength > setlength:
+                break
+            elif count % 4 == 1 and downsample % step == start:
+                if self.filt:
+                    line = self.filterQuality(line)
+                out_handle.write(line)
+                outlength += len(line)
+                downsample = (downsample+1) %step
+            elif count %4 == 1:
+                downsample = (downsample+1) %step
+            count = (count+1) %4
+        in_handle.close()
+        return outlength
+
 
     ## Parse blast output file
     def parse_blast(self,in_file,log_handle,out_handle):
@@ -451,7 +601,7 @@ class Main(Tkinter.Tk):
         storage=[]
         for i in range(1,44):
             signal =0
-            if (record["Spacer%d" % i] >= self.min) or (record_relax["Spacer%d" % i]) >= self.min_relax:
+            if (record["Spacer%d" % i] >= self.min_strict) or (record_relax["Spacer%d" % i]) >= self.min_relax:
                 signal = 1
             storage.append(signal)
             log_handle.write("Spacer%d\t%d\t%d\t%d\n" % (i,record["Spacer%d" % i], record_relax["Spacer%d" % i],signal))
@@ -626,9 +776,15 @@ class Main(Tkinter.Tk):
         self.var5.set(True)
         self.swift = True
 		
+        self.var6.set(False)
+        self.filt = False
+		
+        self.var7.set(False)
+        self.sortS = True
+		
         self.entry6.delete(0, Tkinter.END)
         self.entry6.insert(0, 5)
-        self.min = 5
+        self.min_strict = 5
 
         self.entry7.delete(0, Tkinter.END)
         self.entry7.insert(0, 6)
