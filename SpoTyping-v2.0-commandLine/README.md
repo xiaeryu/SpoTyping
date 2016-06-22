@@ -37,12 +37,12 @@ python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
   **-s SWIFT, --swift=SWIFT**  
   swift mode, either "on" or "off" [Default: on]
   
-  **-m MIN, --min=MIN**  
-  minimum number of error-free hits to support presence of a spacer [Default: 5]
+  **-m MIN_STRICT, --min=MIN_STRICT**  
+  minimum number of error-free hits to support presence of a spacer [Default: 0.1*average read depth]
   
-  **-r MIN_RELAX, --rmin=MIN_RELAX**  
-  minimum number of 1-error-tolerant hits to support presence of a spacer [Default: 6]
-  
+  **-r MIN_RELAX, --rmin=MIN_RELAX**
+  minimum number of 1-error-tolerant hits to support presence of a spacer [Default: 0.12 * average read depth]
+
   **-O OUTDIR, --outdir=OUTDIR**  
   output directory [Default: running directory]
   
@@ -51,6 +51,12 @@ python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
   
   **--noQuery**  
   suppress the SITVIT database query [Default is off]
+  
+  **--filter**  
+  stringent filtering of reads (used only for low quality reads) [Default is off]
+  
+  **--sorted**  
+  set this only when the reads are sorted to a reference genome [Default is off]
   
   **-d, --debug**  
   enable debug mode, keeping all intermediate files for checking [Default is off]
@@ -64,18 +70,26 @@ python2.7 SpoTyping.py read_1.fastq read_2.fastq –o spo.out
 <br><br>
 
 ##### Suggestions:
-1. It's highly suggested to use the swift mode (set as the default) if the sequencing throughput is no less than 135Mbp.
-2. For sequencing experiments with throughputs below 135Mbp, please adjust the thresholds to be 0.0180 to 0.1486 times the estimated read depth for error-free hits and 0.0180 to 0.1488 times the estimated read depth for 1-error-tolerant hits. (The read depth is estimated by dividing the sequencing throughput by 4,500,000, which is the estimated _Mtb_ genome length.)
-3. If you do wish to take in all reads for sequencing experiments with throughputs above 1260Mbp, please adjust the thresholds to be 0.0180 to 0.1486 times the estimated read depth for error-free hits and 0.0180 to 0.1488 times the estimated read depth for 1-error-tolerant hits.
+1. It's highly suggested to use the default settings (including the swift mode).
+2. Do wish to change the hit thresholds? Can adjust the thresholds to be 0.0180 to 0.1486 times the estimated read depth for error-free hits and 0.0180 to 0.1488 times the estimated read depth for 1-error-tolerant hits. (The read depth is estimated by dividing the sequencing throughput by 4,500,000, which is the estimated _Mtb_ genome length.) The default setting already has this optimized.
+3. For low quality sequence reads (reads with many 'N's or long homopolymers), please specify **'--filter'**.
+4. If the reads are sorted against a reference genome (extracted form sorted bam files, for example), please specify **'--sorted'**.
 <br><br>
 
-##### Got weird spoligotype prediction?
-* **Sequencing throughput is very high** (>500Mbp, for example): try to disable the swift mode and set the hit thresholds higher (10% of the estimated read depth, for example).
+**SpoTyping seems slow?** (more than 5 mins, for example)
+* Low quality of sequence reads?** (reads with many 'N's or long homopolymers): try to use **'--filter'**.
 ```shell
 # Example commad:
-python SpoTyping.py -s off -m 10 -r 12 read_1.fastq.gz read_2.fastq.gz
+python SpoTyping.py --filter read_1.fastq.gz read_2.fastq.gz
 ```
-* **Sequencing throughput is very low** (<40Mbp, for example): SpoTyping may not be able to give accurate prediction due to the relatively low read depth.
+
+**Got weird spoligotype prediction?**
+* **Reads are sorted against a reference genome?**: try to use **'--sorted'**.
+```shell
+# Example commad:
+python SpoTyping.py --sorted read_1.fastq.gz read_2.fastq.gz
+```
+* **Sequencing throughput is very low?** (<40Mbp, for example): SpoTyping may not be able to give accurate prediction due to the relatively low read depth.
 <br><br>
 
 
