@@ -25,8 +25,7 @@ import re
 from optparse import OptionParser
 import subprocess
 import gzip
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
 
 ## Global variables
 dir = os.path.split(os.path.realpath(__file__))[0] # script directory
@@ -61,24 +60,24 @@ debug = options.debug                # debug mode
 ## Check input fastq files
 narg = len(args)
 if narg == 0:
-    print "usage: python SpoTyping.py [options] FASTQ_1/FASTA FASTQ_2(optional)"
+    print("usage: python SpoTyping.py [options] FASTQ_1/FASTA FASTQ_2(optional)")
     sys.exit()
 elif narg == 1:
     input1 = args[0]    # Input fastq file 1
     if not os.path.isfile(input1):
-        print "ERROR: Invalid FASTQ_1/FASTA file!"
+        print("ERROR: Invalid FASTQ_1/FASTA file!")
         sys.exit()
 elif narg == 2:
     if seq:
-        print "ERROR: Only one fasta file is allowed when '--seq' is set!"
+        print("ERROR: Only one fasta file is allowed when '--seq' is set!")
         sys.exit()
     input1 = args[0]    # Input fastq file 1
     input2 = args[1]    # Input fastq file 2
     if not os.path.isfile(input1):
-        print "ERROR: Invalid FASTQ_1 file!"
+        print("ERROR: Invalid FASTQ_1 file!")
         sys.exit()
     elif not os.path.isfile(input2):
-        print "ERROR: Invalid FASTQ_2 file!"
+        print("ERROR: Invalid FASTQ_2 file!")
         sys.exit()
 
 if seq:
@@ -258,9 +257,9 @@ class Main:
 ############################################################
 class querySITVIT:
     def post(self, url, data):
-        req = urllib2.Request(url)
-        data = urllib.urlencode(data)
-        opener = urllib2.build_opener(urllib2.HTTPCookieProcessor())
+        req = urllib.request.Request(url)
+        data = urllib.parse.urlencode(data).encode("utf-8")
+        opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor())
         response = opener.open(req, data, timeout=500)
         return response.read()
 
