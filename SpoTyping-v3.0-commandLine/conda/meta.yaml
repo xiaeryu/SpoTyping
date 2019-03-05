@@ -1,0 +1,28 @@
+{% set version = "3.0" %}
+package:
+  name: spotyping3
+  version: {{ version }}
+
+source:
+  url: https://github.com/matnguyen/SpoTyping/archive/v{{ version }}.tar.gz
+  sha256: 13e79151733e52fa3eb3bf659d07b4c9d7eeb9bd7c5ab63e734c2480ce1bbdae
+
+build:
+  number: 0
+
+requirements:
+  host:
+    - python >=3.5
+  run:
+    - python >=3.5
+    - blast >=2.7.1
+
+test:
+  commands:
+    - SpoTyping -h
+
+about:
+  home: https://github.com/matnguyen/SpoTyping
+  summary: SpoTyping is a software for predicting spoligotype from sequencing reads, complete genomic sequences and assembled contigs.
+  license: GPL-3.0
+  license_file: LICENSE
